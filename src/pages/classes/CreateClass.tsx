@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Breadcrumb } from "@/components/refine-ui/layout/breadcrumb";
 import { CreateView } from "@/components/refine-ui/views/create-view";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,6 @@ import {
 } from "@/components/ui/form";
 import z from "zod";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -25,6 +25,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Loader2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import UploadWidget from "@/components/UploadWidget";
 
 const CreateClass = () => {
   const back = useBack();
@@ -48,7 +51,7 @@ const CreateClass = () => {
   const {
     handleSubmit,
     control,
-    formState: { isSubmitting },
+    formState: { isSubmitting, errors },
   } = form;
   const teachers = [
     { id: 1, name: "Sarah Connor" },
@@ -62,6 +65,25 @@ const CreateClass = () => {
     { id: 102, name: "Computer Science", code: "CS" },
     { id: 103, name: "Chemistry", code: "CHEM" },
   ];
+  const bannerPublicId = form.watch("bannerCldPubId");
+  const setBannerImage = (
+    file: { url: any; publicId: string },
+    field: { onChange: (arg0: string) => void },
+  ) => {
+    if (file) {
+      field.onChange(file.url);
+      form.setValue("bannerCldPubId", file.publicId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    } else {
+      field.onChange("");
+      form.setValue("bannerCldPubId", "", {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    }
+  };
   return (
     <CreateView className="class-view">
       <Breadcrumb />
@@ -81,13 +103,39 @@ const CreateClass = () => {
           <Separator />
           <CardContent className="mt-7">
             <Form {...form}>
-              <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
-                <div className="space-y-3">
-                  <Label>
-                    Banner Image <span className="text-orange-600">*</span>
-                    <p>Upload image widget</p>
-                  </Label>
-                </div>
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                <FormField
+                  control={control}
+                  name="bannerUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Banner Image <span className="text-orange-600">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <UploadWidget
+                          value={
+                            field.value
+                              ? ({
+                                  url: field.value,
+                                  publicId: bannerPublicId ?? "",
+                                } as any)
+                              : null
+                          }
+                          onChange={(file: any, field: any) =>
+                            setBannerImage(file, field)
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                      {errors.bannerCldPubId && !errors.bannerUrl && (
+                        <p className="text-destructive text-sm">
+                          {errors.bannerCldPubId.message?.toString()}
+                        </p>
+                      )}
+                    </FormItem>
+                  )}
+                />
 
                 <FormField
                   control={control}
@@ -99,15 +147,15 @@ const CreateClass = () => {
                       </FormLabel>
                       <FormControl>
                         <Input
+                          placeholder="Introduction to Biology - Section A"
                           {...field}
-                          placeholder="Introduction to Biology"
                         />
                       </FormControl>
-
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
                 <div className="grid sm:grid-cols-2 gap-4">
                   <FormField
                     control={control}
@@ -117,35 +165,33 @@ const CreateClass = () => {
                         <FormLabel>
                           Subject <span className="text-orange-600">*</span>
                         </FormLabel>
-                        <FormControl>
-                          <Select
-                            onValueChange={(value) =>
-                              field.onChange(Number(value))
-                            }
-                            value={field.value?.toString()}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select a subject" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {subjects?.map((subject) => (
-                                <SelectItem
-                                  key={subject.id}
-                                  value={subject?.id?.toString()}
-                                >
-                                  {subject.name}({subject.code})
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-
+                        <Select
+                          onValueChange={(value) =>
+                            field.onChange(Number(value))
+                          }
+                          value={field.value?.toString()}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select a subject" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {subjects.map((subject) => (
+                              <SelectItem
+                                key={subject.id}
+                                value={subject.id.toString()}
+                              >
+                                {subject.name} ({subject.code})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={control}
                     name="teacherId"
@@ -154,37 +200,120 @@ const CreateClass = () => {
                         <FormLabel>
                           Teacher <span className="text-orange-600">*</span>
                         </FormLabel>
-                        <FormControl>
-                          <Select
-                            onValueChange={(value) =>
-                              field.onChange(Number(value))
-                            }
-                            value={field.value?.toString()}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select a teacher" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {teachers?.map((teacher) => (
-                                <SelectItem
-                                  key={teacher.id}
-                                  value={teacher?.id?.toString()}
-                                >
-                                  {teacher.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value?.toString()}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select a teacher" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {teachers.map((teacher) => (
+                              <SelectItem
+                                key={teacher.id}
+                                value={teacher.id.toString()}
+                              >
+                                {teacher.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
-                <Button type="submit">Submit</Button>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <FormField
+                    control={control}
+                    name="capacity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Capacity <span className="text-orange-600">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min={1}
+                            placeholder="30"
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              field.onChange(value ? Number(value) : undefined);
+                            }}
+                            value={(field.value as number | undefined) ?? ""}
+                            name={field.name}
+                            ref={field.ref}
+                            onBlur={field.onBlur}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Status <span className="text-orange-600">*</span>
+                        </FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="inactive">Inactive</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Description <span className="text-orange-600">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Brief description about the class"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Separator />
+
+                <Button type="submit" size="lg" className="w-full">
+                  {isSubmitting ? (
+                    <div className="flex gap-1">
+                      <span>Creating Class...</span>
+                      <Loader2 className="inline-block ml-2 animate-spin" />
+                    </div>
+                  ) : (
+                    "Create Class"
+                  )}
+                </Button>
               </form>
             </Form>
           </CardContent>
