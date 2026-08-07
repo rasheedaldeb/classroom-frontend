@@ -4,7 +4,7 @@ import { CreateView } from "@/components/refine-ui/views/create-view";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { useBack } from "@refinedev/core";
+import { useBack, useList } from "@refinedev/core";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "@refinedev/react-hook-form";
 import { classSchema } from "@/lib/schema";
@@ -28,6 +28,7 @@ import {
 import { Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import UploadWidget from "@/components/UploadWidget";
+import { Subject, User } from "@/types";
 
 const CreateClass = () => {
   const back = useBack();
@@ -41,49 +42,39 @@ const CreateClass = () => {
       status: "active",
     },
   });
-  const onSubmit = (data: z.infer<typeof classSchema>) => {
-    try {
-      console.log(data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+
   const {
+    refineCore: { onFinish },
     handleSubmit,
     control,
     formState: { isSubmitting, errors },
   } = form;
-  const teachers = [
-    { id: 1, name: "Sarah Connor" },
-    { id: 2, name: "John Keating" },
-    { id: 3, name: "Walter White" },
-  ];
-
-  // Subjects array
-  const subjects = [
-    { id: 101, name: "Mathematics", code: "MATH" },
-    { id: 102, name: "Computer Science", code: "CS" },
-    { id: 103, name: "Chemistry", code: "CHEM" },
-  ];
-  const bannerPublicId = form.watch("bannerCldPubId");
-  const setBannerImage = (
-    file: { url: any; publicId: string },
-    field: { onChange: (arg0: string) => void },
-  ) => {
-    if (file) {
-      field.onChange(file.url);
-      form.setValue("bannerCldPubId", file.publicId, {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
-    } else {
-      field.onChange("");
-      form.setValue("bannerCldPubId", "", {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
+  const onSubmit = async (data: z.infer<typeof classSchema>) => {
+    try {
+      await onFinish(data);
+    } catch (error) {
+      console.log(error);
     }
   };
+  const { query: subjectsQuery } = useList<Subject>({
+    resource: "subjects",
+    pagination: {
+      pageSize: 100,
+    },
+  });
+  const { query: teachersQuery } = useList<User>({
+    resource: "users",
+    filters: [{ field: "role", operator: "eq", value: "teacher" }],
+    pagination: {
+      pageSize: 100,
+    },
+  });
+  const subjects = subjectsQuery?.data?.data ?? [];
+  const subjectsLoading = subjectsQuery.isLoading;
+  const teachers = teachersQuery?.data?.data ?? [];
+  const teachersLoading = teachersQuery.isLoading;
+  const bannerPublicId = form.watch("bannerCldPubId");
+
   return (
     <CreateView className="class-view">
       <Breadcrumb />
@@ -122,9 +113,21 @@ const CreateClass = () => {
                                 } as any)
                               : null
                           }
-                          onChange={(file: any, field: any) =>
-                            setBannerImage(file, field)
-                          }
+                          onChange={(file: { url: any; publicId: string }) => {
+                            if (file) {
+                              field.onChange(file.url);
+                              form.setValue("bannerCldPubId", file.publicId, {
+                                shouldValidate: true,
+                                shouldDirty: true,
+                              });
+                            } else {
+                              field.onChange("");
+                              form.setValue("bannerCldPubId", "", {
+                                shouldValidate: true,
+                                shouldDirty: true,
+                              });
+                            }
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
@@ -170,6 +173,7 @@ const CreateClass = () => {
                             field.onChange(Number(value))
                           }
                           value={field.value?.toString()}
+                          disabled={subjectsLoading || subjects.length === 0}
                         >
                           <FormControl>
                             <SelectTrigger className="w-full">
@@ -177,7 +181,7 @@ const CreateClass = () => {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {subjects.map((subject) => (
+                            {subjects?.map((subject) => (
                               <SelectItem
                                 key={subject.id}
                                 value={subject.id.toString()}
@@ -203,6 +207,7 @@ const CreateClass = () => {
                         <Select
                           onValueChange={field.onChange}
                           value={field.value?.toString()}
+                          disabled={teachersLoading || teachers.length === 0}
                         >
                           <FormControl>
                             <SelectTrigger className="w-full">
