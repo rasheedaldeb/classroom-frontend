@@ -17,6 +17,7 @@ import { useList } from "@refinedev/core";
 import { ColumnDef } from "@tanstack/react-table";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
+import { ShowButton } from "@/components/refine-ui/buttons/show";
 
 const ClassesList = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -127,6 +128,21 @@ const ClassesList = () => {
           header: () => <p className="column-title">Capacity</p>,
           cell: ({ getValue }) => <span>{getValue<number>()}</span>,
         },
+        {
+          id: "details",
+          size: 140,
+          header: () => <p className="column-title">Details</p>,
+          cell: ({ row }) => (
+            <ShowButton
+              resource="classes"
+              recordItemId={row.original.id}
+              variant="outline"
+              size="sm"
+            >
+              View
+            </ShowButton>
+          ),
+        },
       ],
       [],
     ),
@@ -149,22 +165,31 @@ const ClassesList = () => {
     <ListView>
       <Breadcrumb />
       <h1 className="page-title">Classes</h1>
-      <div className="intro-row">
-        <p>Quick access to essential metrics and management tools.</p>
-        <div className="actions-row">
-          <div className="search-field">
-            <Search className="search-icon" />
+
+      {/* Container: Stack elements on mobile/tablet, align in row on large screens */}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-6">
+        <p className="text-muted-foreground text-sm">
+          Quick access to essential metrics and management tools.
+        </p>
+
+        {/* Controls Container */}
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 w-full lg:w-auto">
+          {/* Search Input */}
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search by class name."
-              className="pl-10 w-full"
+              placeholder="Search by class name..."
+              className="pl-9 w-full"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <div className="flex gap-2 w-full sm:w-auto">
+
+          {/* Filters & Actions Group */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
             <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-              <SelectTrigger className="w-full min-w-45">
+              <SelectTrigger className="w-full sm:w-44">
                 <SelectValue placeholder="Filter by subject" />
               </SelectTrigger>
               <SelectContent>
@@ -176,8 +201,9 @@ const ClassesList = () => {
                 ))}
               </SelectContent>
             </Select>
+
             <Select value={selectedTeacher} onValueChange={setSelectedTeacher}>
-              <SelectTrigger className="w-full min-w-45">
+              <SelectTrigger className="w-full sm:w-44">
                 <SelectValue placeholder="Filter by teacher" />
               </SelectTrigger>
               <SelectContent>
@@ -189,10 +215,14 @@ const ClassesList = () => {
                 ))}
               </SelectContent>
             </Select>
-            <CreateButton resource="classes" />
+
+            <div className="w-full sm:w-auto">
+              <CreateButton resource="classes" className="w-full sm:w-auto" />
+            </div>
           </div>
         </div>
       </div>
+
       <DataTable table={classesTable} />
     </ListView>
   );
