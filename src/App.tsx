@@ -17,6 +17,7 @@ import SubjectsCreate from "./pages/subjects/SubjectsCreate";
 import ClassesList from "./pages/classes/ClassesList";
 import CreateClass from "./pages/classes/CreateClass";
 import ClassesShow from "./pages/classes/ClassesShow";
+import { authProvider } from "./providers/auth";
 
 function App() {
   return (
@@ -28,10 +29,15 @@ function App() {
               dataProvider={dataProvider}
               notificationProvider={useNotificationProvider()}
               routerProvider={routerProvider}
+              authProvider={authProvider}
               options={{
                 syncWithLocation: true,
                 warnWhenUnsavedChanges: true,
                 projectId: "c3KLFf-5DNRww-GWRl4u",
+                title: {
+                  text: "Classroom Panel",
+                  icon: <img src="/classroom.svg" alt="logo" />,
+                },
               }}
               resources={[
                 {
@@ -76,7 +82,36 @@ function App() {
               </Routes>
               <Toaster />
               <RefineKbar />
-              <DocumentTitleHandler />
+              <DocumentTitleHandler
+                handler={({ action, resource, params }) => {
+                  const appName = "Classroom Panel";
+
+                  if (!resource) return appName;
+
+                  const resourceLabel = resource.meta?.label || resource.name;
+                  const id = params?.id;
+
+                  switch (action) {
+                    case "list":
+                      return `${resourceLabel} | ${appName}`;
+                    case "create":
+                      return `Create ${resourceLabel.slice(
+                        0,
+                        -1,
+                      )} | ${appName}`;
+                    case "edit":
+                      return `Edit ${resourceLabel.slice(0, -1)} ${
+                        id ? `#${id}` : ""
+                      } | ${appName}`;
+                    case "show":
+                      return `${resourceLabel.slice(0, -1)} Details ${
+                        id ? `#${id}` : ""
+                      } | ${appName}`;
+                    default:
+                      return `${resourceLabel} | ${appName}`;
+                  }
+                }}
+              />
             </Refine>
           </DevtoolsProvider>
         </ThemeProvider>
