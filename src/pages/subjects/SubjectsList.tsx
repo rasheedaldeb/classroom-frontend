@@ -1,4 +1,7 @@
 import { CreateButton } from "@/components/refine-ui/buttons/create";
+import { ShowButton } from "@/components/refine-ui/buttons/show";
+import { EditButton } from "@/components/refine-ui/buttons/edit";
+import { DeleteButton } from "@/components/refine-ui/buttons/delete";
 import { DataTable } from "@/components/refine-ui/data-table/data-table";
 import { Breadcrumb } from "@/components/refine-ui/layout/breadcrumb";
 import { ListView } from "@/components/refine-ui/views/list-view";
@@ -17,6 +20,7 @@ import { useTable } from "@refinedev/react-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
+
 const SubjectsList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("all");
@@ -71,6 +75,35 @@ const SubjectsList = () => {
             <span className="truncate line-clamp-2">{getValue<string>()}</span>
           ),
         },
+        {
+          id: "actions",
+          size: 200,
+          header: () => <p className="column-title">Actions</p>,
+          cell: ({ row }) => (
+            <div className="flex items-center gap-2">
+              <ShowButton
+                resource="subjects"
+                recordItemId={row.original.id}
+                variant="outline"
+                size="sm"
+              >
+                View
+              </ShowButton>
+              <EditButton
+                resource="subjects"
+                recordItemId={row.original.id}
+                variant="outline"
+                size="sm"
+              />
+              <DeleteButton
+                resource="subjects"
+                recordItemId={row.original.id}
+                variant="outline"
+                size="sm"
+              />
+            </div>
+          ),
+        },
       ],
       [],
     ),
@@ -122,7 +155,7 @@ const SubjectsList = () => {
                 ))}
               </SelectContent>
             </Select>
-            <CreateButton />
+            <CreateButton resource="subjects" />
           </div>
         </div>
       </div>

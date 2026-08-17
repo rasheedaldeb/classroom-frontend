@@ -120,16 +120,3 @@ export type SignUpPayload = {
   imageCldPubId?: string;
   role: UserRole;
 };
-export type ClassListItem = {
-  id: number;
-  name: string;
-  status: "active" | "inactive";
-  bannerUrl?: string;
-  subject?: {
-    name: string;
-  };
-  teacher?: {
-    name: string;
-  };
-  capacity: number;
-};

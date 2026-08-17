@@ -1,23 +1,49 @@
-import { Refine } from "@refinedev/core";
+import { Authenticated, Refine } from "@refinedev/core";
 import { DevtoolsProvider } from "@refinedev/devtools";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 
-import routerProvider, { DocumentTitleHandler } from "@refinedev/react-router";
+import routerProvider, {
+  DocumentTitleHandler,
+  NavigateToResource,
+  UnsavedChangesNotifier,
+} from "@refinedev/react-router";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router";
 import "./App.css";
 import { Toaster } from "./components/refine-ui/notification/toaster";
 import { useNotificationProvider } from "./components/refine-ui/notification/use-notification-provider";
 import { ThemeProvider } from "./components/refine-ui/theme/theme-provider";
-import { dataProvider } from "./providers/data";
-import { BookOpen, GraduationCap, Home } from "lucide-react";
-import { Layout } from "./components/refine-ui/layout/layout";
-import Dashboard from "./pages/Dashboard";
+import {
+  BookOpen,
+  Building2,
+  ClipboardCheck,
+  GraduationCap,
+  Home,
+  Users,
+} from "lucide-react";
 import SubjectsList from "./pages/subjects/SubjectsList";
+import { Layout } from "./components/refine-ui/layout/layout";
 import SubjectsCreate from "./pages/subjects/SubjectsCreate";
+import SubjectsEdit from "./pages/subjects/SubjectsEdit";
+import SubjectsShow from "./pages/subjects/SubjectShow";
+import Dashboard from "./pages/Dashboard";
+
+import { dataProvider } from "./providers/data";
 import ClassesList from "./pages/classes/ClassesList";
-import CreateClass from "./pages/classes/CreateClass";
 import ClassesShow from "./pages/classes/ClassesShow";
+import EditClass from "./pages/classes/EditClass";
+import CreateClass from "./pages/classes/CreateClass";
 import { authProvider } from "./providers/auth";
+import { Login } from "./pages/login";
+import Register from "./pages/register";
+import DepartmentsList from "./pages/departments/DepartmentsList";
+import DepartmentsCreate from "./pages/departments/DepartmentCreate";
+import DepartmentEdit from "./pages/departments/DepartmentEdit";
+import DepartmentShow from "./pages/departments/DepartmentShow";
+import FacultyList from "./pages/faculty/FacultyList";
+import FacultyShow from "./pages/faculty/FacultyShow";
+import EnrollmentsCreate from "./pages/enrollments/EnrollmentCreate";
+import EnrollmentsJoin from "./pages/enrollments/EnrollmentJoin";
+import EnrollmentConfirm from "./pages/enrollments/EnrollmentConfirm";
 
 function App() {
   return (
@@ -27,89 +53,152 @@ function App() {
           <DevtoolsProvider>
             <Refine
               dataProvider={dataProvider}
+              authProvider={authProvider}
               notificationProvider={useNotificationProvider()}
               routerProvider={routerProvider}
-              authProvider={authProvider}
               options={{
                 syncWithLocation: true,
                 warnWhenUnsavedChanges: true,
-                projectId: "c3KLFf-5DNRww-GWRl4u",
+                projectId: "kkWuv7-GgBIfw-P8CGy0",
                 title: {
-                  text: "Classroom Panel",
-                  icon: <img src="/classroom.svg" alt="logo" />,
+                  text: "Classroom Management",
+                  icon: <img src="/classroom.svg" className="w-20 h-20" />,
                 },
               }}
               resources={[
                 {
                   name: "dashboard",
                   list: "/",
-                  meta: { label: "Home", icon: <Home /> },
+                  meta: {
+                    label: "Home",
+                    icon: <Home />,
+                  },
                 },
                 {
                   name: "subjects",
                   list: "/subjects",
                   create: "/subjects/create",
-                  meta: { label: "Subjects", icon: <BookOpen /> },
+                  edit: "/subjects/edit/:id",
+                  show: "/subjects/show/:id",
+                  meta: {
+                    label: "Subjects",
+                    icon: <BookOpen />,
+                  },
+                },
+                {
+                  name: "departments",
+                  list: "/departments",
+                  show: "/departments/show/:id",
+                  create: "/departments/create",
+                  edit: "/departments/edit/:id",
+                  meta: {
+                    label: "Departments",
+                    icon: <Building2 />,
+                  },
+                },
+                {
+                  name: "users",
+                  list: "/faculty",
+                  show: "/faculty/show/:id",
+                  meta: {
+                    label: "Faculty",
+                    icon: <Users />,
+                  },
+                },
+                {
+                  name: "enrollments",
+                  list: "/enrollments/create",
+                  create: "/enrollments/create",
+                  meta: {
+                    label: "Enrollments",
+                    icon: <ClipboardCheck />,
+                  },
                 },
                 {
                   name: "classes",
                   list: "/classes",
                   create: "/classes/create",
+                  edit: "/classes/edit/:id",
                   show: "/classes/show/:id",
-                  meta: { label: "Classes", icon: <GraduationCap /> },
+                  meta: {
+                    label: "Classes",
+                    icon: <GraduationCap />,
+                  },
                 },
               ]}
             >
               <Routes>
                 <Route
                   element={
-                    <Layout>
-                      <Outlet />
-                    </Layout>
+                    <Authenticated key="public-routes" fallback={<Outlet />}>
+                      <NavigateToResource fallbackTo="/" />
+                    </Authenticated>
+                  }
+                >
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                </Route>
+
+                <Route
+                  element={
+                    <Authenticated key="private-routes" fallback={<Login />}>
+                      <Layout>
+                        <Outlet />
+                      </Layout>
+                    </Authenticated>
                   }
                 >
                   <Route path="/" element={<Dashboard />} />
+
                   <Route path="subjects">
                     <Route index element={<SubjectsList />} />
                     <Route path="create" element={<SubjectsCreate />} />
+                    <Route path="edit/:id" element={<SubjectsEdit />} />
+                    <Route path="show/:id" element={<SubjectsShow />} />
                   </Route>
+
+                  <Route path="departments">
+                    <Route index element={<DepartmentsList />} />
+                    <Route path="create" element={<DepartmentsCreate />} />
+                    <Route path="edit/:id" element={<DepartmentEdit />} />
+                    <Route path="show/:id" element={<DepartmentShow />} />
+                  </Route>
+
+                  <Route path="faculty">
+                    <Route index element={<FacultyList />} />
+                    <Route path="show/:id" element={<FacultyShow />} />
+                  </Route>
+
+                  <Route path="enrollments">
+                    <Route path="create" element={<EnrollmentsCreate />} />
+                    <Route path="join" element={<EnrollmentsJoin />} />
+                    <Route path="confirm" element={<EnrollmentConfirm />} />
+                  </Route>
+
                   <Route path="classes">
                     <Route index element={<ClassesList />} />
                     <Route path="create" element={<CreateClass />} />
+                    <Route path="edit/:id" element={<EditClass />} />
                     <Route path="show/:id" element={<ClassesShow />} />
                   </Route>
                 </Route>
               </Routes>
+
               <Toaster />
               <RefineKbar />
+              <UnsavedChangesNotifier />
               <DocumentTitleHandler
-                handler={({ action, resource, params }) => {
-                  const appName = "Classroom Panel";
-
-                  if (!resource) return appName;
-
-                  const resourceLabel = resource.meta?.label || resource.name;
-                  const id = params?.id;
-
-                  switch (action) {
-                    case "list":
-                      return `${resourceLabel} | ${appName}`;
-                    case "create":
-                      return `Create ${resourceLabel.slice(
-                        0,
-                        -1,
-                      )} | ${appName}`;
-                    case "edit":
-                      return `Edit ${resourceLabel.slice(0, -1)} ${
-                        id ? `#${id}` : ""
-                      } | ${appName}`;
-                    case "show":
-                      return `${resourceLabel.slice(0, -1)} Details ${
-                        id ? `#${id}` : ""
-                      } | ${appName}`;
-                    default:
-                      return `${resourceLabel} | ${appName}`;
-                  }
+                handler={({ action, resource }) => {
+                  const actionPrefixes: Record<string, string> = {
+                    create: "Create new ",
+                    edit: "Edit ",
+                    show: "Show ",
+                    list: "",
+                  };
+                  const resourceName =
+                    resource?.meta?.label || resource?.name || "";
+                  const prefix = action ? actionPrefixes[action] ?? "" : "";
+                  return `${prefix}${resourceName} | Classroom Management`;
                 }}
               />
             </Refine>

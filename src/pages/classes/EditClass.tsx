@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Breadcrumb } from "@/components/refine-ui/layout/breadcrumb";
-import { CreateView } from "@/components/refine-ui/views/create-view";
+import { EditView } from "@/components/refine-ui/views/edit-view";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -30,16 +30,13 @@ import { Textarea } from "@/components/ui/textarea";
 import UploadWidget from "@/components/UploadWidget";
 import { Subject, User } from "@/types";
 
-const CreateClass = () => {
+const EditClass = () => {
   const back = useBack();
   const form = useForm({
     resolver: zodResolver(classSchema),
     refineCoreProps: {
       resource: "classes",
-      action: "create",
-    },
-    defaultValues: {
-      status: "active",
+      action: "edit",
     },
   });
 
@@ -80,11 +77,11 @@ const CreateClass = () => {
   const bannerPublicId = form.watch("bannerCldPubId");
 
   return (
-    <CreateView className="class-view">
+    <EditView className="class-view">
       <Breadcrumb />
-      <h1 className="page-title">Create a Class</h1>
+      <h1 className="page-title">Edit Class</h1>
       <div className="intro-row">
-        <p>Provide the required information below to add a class</p>
+        <p>Update the class information below</p>
         <Button onClick={() => back()}>Go Back</Button>
       </div>
       <Separator />
@@ -92,7 +89,7 @@ const CreateClass = () => {
         <Card className="class-form-card">
           <CardHeader className="relative z-10">
             <CardTitle className="text-2xl pg-0 font-bold">
-              Fill out the form
+              Update class details
             </CardTitle>
           </CardHeader>
           <Separator />
@@ -138,7 +135,10 @@ const CreateClass = () => {
                                 } as any)
                               : null
                           }
-                          onChange={(file: { url: any; publicId: string }) => {
+                          onChange={(file: {
+                            url: string;
+                            publicId: string;
+                          }) => {
                             if (file) {
                               field.onChange(file.url);
                               form.setValue("bannerCldPubId", file.publicId, {
@@ -197,7 +197,7 @@ const CreateClass = () => {
                           onValueChange={(value) =>
                             field.onChange(Number(value))
                           }
-                          value={field.value?.toString()}
+                          value={field.value ? field.value.toString() : ""}
                           disabled={subjectsLoading || subjects.length === 0}
                         >
                           <FormControl>
@@ -231,7 +231,7 @@ const CreateClass = () => {
                         </FormLabel>
                         <Select
                           onValueChange={field.onChange}
-                          value={field.value?.toString()}
+                          value={field.value ? field.value.toString() : ""}
                           disabled={teachersLoading || teachers.length === 0}
                         >
                           <FormControl>
@@ -334,14 +334,19 @@ const CreateClass = () => {
 
                 <Separator />
 
-                <Button type="submit" size="lg" className="w-full">
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="w-full"
+                  disabled={isSubmitting}
+                >
                   {isSubmitting ? (
                     <div className="flex gap-1">
-                      <span>Creating Class...</span>
+                      <span>Saving Changes...</span>
                       <Loader2 className="inline-block ml-2 animate-spin" />
                     </div>
                   ) : (
-                    "Create Class"
+                    "Save Changes"
                   )}
                 </Button>
               </form>
@@ -349,8 +354,8 @@ const CreateClass = () => {
           </CardContent>
         </Card>
       </div>
-    </CreateView>
+    </EditView>
   );
 };
 
-export default CreateClass;
+export default EditClass;
