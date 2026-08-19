@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "@refinedev/react-hook-form";
@@ -58,6 +59,12 @@ const SubjectsEdit = () => {
     refineCoreProps: {
       resource: "subjects",
       action: "edit",
+      queryOptions: {
+        select: (data) => ({
+          ...data,
+          data: (data.data as any)?.subject ?? data.data,
+        }),
+      },
     },
   });
 
@@ -82,8 +89,9 @@ const SubjectsEdit = () => {
   useEffect(() => {
     if (subjectRecord) {
       reset({
-        departmentId:
+        departmentId: Number(
           subjectRecord.departmentId ?? subjectRecord.department?.id,
+        ),
         name: subjectRecord.name ?? "",
         code: subjectRecord.code ?? "",
         description: subjectRecord.description ?? "",
@@ -135,7 +143,6 @@ const SubjectsEdit = () => {
                 <FormField
                   control={control}
                   name="departmentId"
-                  defaultValue={subjectRecord?.department?.name}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>

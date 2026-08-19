@@ -45,9 +45,14 @@ const EnrollmentConfirm = () => {
             <p className="text-sm text-muted-foreground">
               No enrollment details found.
             </p>
-            <Button className="mt-4" onClick={() => navigate("/classes")}>
-              Browse Classes
-            </Button>
+            <div className="flex gap-2 mt-4">
+              <Button onClick={() => navigate("/enrollments/create")}>
+                Enroll in a Class
+              </Button>
+              <Button variant="outline" onClick={() => navigate("/classes")}>
+                Browse Classes
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </ShowView>

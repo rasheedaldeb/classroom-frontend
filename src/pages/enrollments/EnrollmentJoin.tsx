@@ -68,8 +68,20 @@ const EnrollmentsJoin = () => {
       <Breadcrumb />
 
       <h1 className="page-title">Join by Invite Code</h1>
-      <div className="intro-row">
+      <div className="intro-row flex items-center justify-between">
         <p>Enter the invite code provided by your instructor.</p>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/enrollments/create")}
+          >
+            Select Class
+          </Button>
+          <Button variant="default" size="sm">
+            Join with Code
+          </Button>
+        </div>
       </div>
 
       <Separator />

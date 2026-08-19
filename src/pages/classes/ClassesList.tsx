@@ -2,7 +2,7 @@ import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { useTable } from "@refinedev/react-table";
-import { useList } from "@refinedev/core";
+import { useList, useGetIdentity } from "@refinedev/core";
 
 import {
   Select,
@@ -41,6 +41,9 @@ const ClassesList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSubject, setSelectedSubject] = useState<string>("all");
   const [selectedTeacher, setSelectedTeacher] = useState<string>("all");
+
+  const { data: identity } = useGetIdentity<User>();
+  const isAdmin = identity?.role === "admin";
 
   const classColumns = useMemo<ColumnDef<ClassListItem>[]>(
     () => [
@@ -142,23 +145,27 @@ const ClassesList = () => {
             >
               View
             </ShowButton>
-            <EditButton
-              resource="classes"
-              recordItemId={row.original.id}
-              variant="outline"
-              size="sm"
-            />
-            <DeleteButton
-              resource="classes"
-              recordItemId={row.original.id}
-              variant="outline"
-              size="sm"
-            />
+            {isAdmin && (
+              <>
+                <EditButton
+                  resource="classes"
+                  recordItemId={row.original.id}
+                  variant="outline"
+                  size="sm"
+                />
+                <DeleteButton
+                  resource="classes"
+                  recordItemId={row.original.id}
+                  variant="outline"
+                  size="sm"
+                />
+              </>
+            )}
           </div>
         ),
       },
     ],
-    [],
+    [isAdmin],
   );
 
   const { query: subjectsQuery } = useList<Subject>({
@@ -290,7 +297,7 @@ const ClassesList = () => {
               </SelectContent>
             </Select>
 
-            <CreateButton resource="classes" />
+            {isAdmin && <CreateButton resource="classes" />}
           </div>
         </div>
       </div>

@@ -90,8 +90,20 @@ const EnrollmentsCreate = () => {
       <Breadcrumb />
 
       <h1 className="page-title">Enroll in a Class</h1>
-      <div className="intro-row">
+      <div className="intro-row flex items-center justify-between">
         <p>Select a class to enroll as the current user.</p>
+        <div className="flex gap-2">
+          <Button variant="default" size="sm">
+            Select Class
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/enrollments/join")}
+          >
+            Join with Code
+          </Button>
+        </div>
       </div>
 
       <Separator />

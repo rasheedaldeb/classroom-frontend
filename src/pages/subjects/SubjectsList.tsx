@@ -15,8 +15,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DEPARTMENT_OPTIONS } from "@/constants";
-import { Subject } from "@/types";
+import { Subject, User } from "@/types";
 import { useTable } from "@refinedev/react-table";
+import { useGetIdentity } from "@refinedev/core";
 import { ColumnDef } from "@tanstack/react-table";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -24,6 +25,10 @@ import { useMemo, useState } from "react";
 const SubjectsList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("all");
+
+  const { data: identity } = useGetIdentity<User>();
+  const isAdmin = identity?.role === "admin";
+
   const departmentFilter =
     selectedDepartment === "all"
       ? []
@@ -89,23 +94,27 @@ const SubjectsList = () => {
               >
                 View
               </ShowButton>
-              <EditButton
-                resource="subjects"
-                recordItemId={row.original.id}
-                variant="outline"
-                size="sm"
-              />
-              <DeleteButton
-                resource="subjects"
-                recordItemId={row.original.id}
-                variant="outline"
-                size="sm"
-              />
+              {isAdmin && (
+                <>
+                  <EditButton
+                    resource="subjects"
+                    recordItemId={row.original.id}
+                    variant="outline"
+                    size="sm"
+                  />
+                  <DeleteButton
+                    resource="subjects"
+                    recordItemId={row.original.id}
+                    variant="outline"
+                    size="sm"
+                  />
+                </>
+              )}
             </div>
           ),
         },
       ],
-      [],
+      [isAdmin],
     ),
     refineCoreProps: {
       resource: "subjects",
@@ -155,7 +164,7 @@ const SubjectsList = () => {
                 ))}
               </SelectContent>
             </Select>
-            <CreateButton resource="subjects" />
+            {isAdmin && <CreateButton resource="subjects" />}
           </div>
         </div>
       </div>

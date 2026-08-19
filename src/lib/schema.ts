@@ -53,9 +53,8 @@ export const classSchema = z.object({
   bannerUrl: z
     .string({ required_error: "Class banner is required" })
     .min(1, "Class banner is required"),
-  bannerCldPubId: z
-    .string({ required_error: "Banner reference is required" })
-    .min(1, "Banner reference is required"),
+  // Allow null or empty string for external images (e.g. Unsplash placeholders)
+  bannerCldPubId: z.string().nullable().optional(),
   inviteCode: z.string().optional(),
   schedules: z.array(scheduleSchema).optional(),
 });

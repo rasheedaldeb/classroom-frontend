@@ -1,4 +1,4 @@
-import { Authenticated, Refine } from "@refinedev/core";
+import { Authenticated, CanAccess, Refine } from "@refinedev/core";
 import { DevtoolsProvider } from "@refinedev/devtools";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 
@@ -44,6 +44,33 @@ import FacultyShow from "./pages/faculty/FacultyShow";
 import EnrollmentsCreate from "./pages/enrollments/EnrollmentCreate";
 import EnrollmentsJoin from "./pages/enrollments/EnrollmentJoin";
 import EnrollmentConfirm from "./pages/enrollments/EnrollmentConfirm";
+import { EnrollmentAccessDenied } from "./components/EnrollmentAccessDenied";
+
+const accessControlProvider = {
+  can: async ({ action, resource }: { action: string; resource?: string }) => {
+    const identityResult = await authProvider.getIdentity?.();
+    const user = identityResult as { role?: string } | undefined;
+    const role = user?.role?.toLowerCase();
+
+    // 1. Only students can see/access the enrollments resource (sidebar & pages)
+    if (resource === "enrollments" && role !== "student") {
+      return {
+        can: false,
+        reason: "Only students can access enrollment features.",
+      };
+    }
+
+    // 2. Hide/block create actions for non-admin users across all other resources
+    if (action === "create" && role !== "admin") {
+      return {
+        can: false,
+        reason: "Only administrators can create records.",
+      };
+    }
+
+    return { can: true };
+  },
+};
 
 function App() {
   return (
@@ -54,6 +81,7 @@ function App() {
             <Refine
               dataProvider={dataProvider}
               authProvider={authProvider}
+              accessControlProvider={accessControlProvider}
               notificationProvider={useNotificationProvider()}
               routerProvider={routerProvider}
               options={{
@@ -152,14 +180,28 @@ function App() {
 
                   <Route path="subjects">
                     <Route index element={<SubjectsList />} />
-                    <Route path="create" element={<SubjectsCreate />} />
+                    <Route
+                      path="create"
+                      element={
+                        <CanAccess resource="subjects" action="create">
+                          <SubjectsCreate />
+                        </CanAccess>
+                      }
+                    />
                     <Route path="edit/:id" element={<SubjectsEdit />} />
                     <Route path="show/:id" element={<SubjectsShow />} />
                   </Route>
 
                   <Route path="departments">
                     <Route index element={<DepartmentsList />} />
-                    <Route path="create" element={<DepartmentsCreate />} />
+                    <Route
+                      path="create"
+                      element={
+                        <CanAccess resource="departments" action="create">
+                          <DepartmentsCreate />
+                        </CanAccess>
+                      }
+                    />
                     <Route path="edit/:id" element={<DepartmentEdit />} />
                     <Route path="show/:id" element={<DepartmentShow />} />
                   </Route>
@@ -170,14 +212,54 @@ function App() {
                   </Route>
 
                   <Route path="enrollments">
-                    <Route path="create" element={<EnrollmentsCreate />} />
-                    <Route path="join" element={<EnrollmentsJoin />} />
-                    <Route path="confirm" element={<EnrollmentConfirm />} />
+                    <Route
+                      path="create"
+                      element={
+                        <CanAccess
+                          resource="enrollments"
+                          action="list"
+                          fallback={<EnrollmentAccessDenied />}
+                        >
+                          <EnrollmentsCreate />
+                        </CanAccess>
+                      }
+                    />
+                    <Route
+                      path="join"
+                      element={
+                        <CanAccess
+                          resource="enrollments"
+                          action="list"
+                          fallback={<EnrollmentAccessDenied />}
+                        >
+                          <EnrollmentsJoin />
+                        </CanAccess>
+                      }
+                    />
+                    <Route
+                      path="confirm"
+                      element={
+                        <CanAccess
+                          resource="enrollments"
+                          action="list"
+                          fallback={<EnrollmentAccessDenied />}
+                        >
+                          <EnrollmentConfirm />
+                        </CanAccess>
+                      }
+                    />
                   </Route>
 
                   <Route path="classes">
                     <Route index element={<ClassesList />} />
-                    <Route path="create" element={<CreateClass />} />
+                    <Route
+                      path="create"
+                      element={
+                        <CanAccess resource="classes" action="create">
+                          <CreateClass />
+                        </CanAccess>
+                      }
+                    />
                     <Route path="edit/:id" element={<EditClass />} />
                     <Route path="show/:id" element={<ClassesShow />} />
                   </Route>
